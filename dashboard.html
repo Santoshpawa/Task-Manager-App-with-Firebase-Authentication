@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        header {
+            display: flex;
+        }
+
+        header>h2 {
+            flex-grow: 1;
+        }
+
+        #taskContainer>div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+        }
+
+        div>p,
+        textarea {
+            flex-grow: 1;
+        }
+
+        input {
+            width: 70%;
+            padding: 5px;
+        }
+
+        button {
+            height: 20px;
+        }
+
+        input,
+        button,
+        textarea {
+
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h2>
+            Welcome,<span id="user-email"></span>
+        </h2>
+        <button id="logout-btn">Logout</button>
+    </header>
+    <div id="addingTask">
+        <input type="text" id="taskTitle" placeholder="Enter any task">
+        <button id="add-btn">Add Task</button>
+    </div>
+    <div id="taskContainer"></div>
+</body>
+
+</html>
+<script type="module" src="./auth.js"></script>
+<script type="module" src="./dashboard.js"></script>
