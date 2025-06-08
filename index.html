@@ -4,11 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Signup</title>
+    <style>
+        body {
+
+            font-family: sans-serif;
+            background-color: rgb(247, 241, 241);
+            display: flex;
+            justify-content: center;
+            align-self: center;
+
+        }
+
+        input,
+        button {
+            display: block;
+            margin: 10px;
+
+            padding: 5px;
+        }
+
+        input {
+            width: 80%;
+        }
+
+        #signupContainer {
+            border: none;
+            padding: 10px;
+            margin-top: 10%;
+            background-color: white;
+            box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+            justify-items: center;
+            width: 40%;
+        }
+    </style>
 </head>
 
 <body>
-
+    <div id="signupContainer">
+        <h2>SignUp</h2>
+        <input type="email" id="signup-email" placeholder="Enter email">
+        <input type="password" id="signup-password" placeholder="Enter password">
+        <button id="signup-btn">SignUp</button>
+        <p>Already have an account? <a href="./login.html">Login.</a></p>
+    </div>
 </body>
 
 </html>
+<script type="module" src="./auth.js"></script>
