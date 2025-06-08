@@ -24,7 +24,7 @@ if(signupBtn){
         try {
             const userCredentials = await createUserWithEmailAndPassword(auth, email,password);
             const id = userCredentials.user.uid;
-            await setDoc(doc(db,"users-tasks",id),{email, tasks : []});
+            await setDoc(doc(db,"users-tasks",id),{email});
             window.location.href = "./login.html";
         } catch (error) {
             alert(error);

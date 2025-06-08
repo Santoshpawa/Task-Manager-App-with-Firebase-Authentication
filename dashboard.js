@@ -6,20 +6,18 @@ import {
 
 import {
     doc,
-    getDoc,
     getDocs,
     updateDoc,
-    arrayRemove,
-    arrayUnion,
-    setDoc,
-    collection
+    addDoc,
+    collection,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
 
 window.addEventListener('DOMContentLoaded', async()=>{
 
 const addBtn = document.getElementById('add-btn');
 const container = document.getElementById('taskContainer');
-
+let taskRef = null;
 
 let currentUser = null;
 
@@ -28,6 +26,7 @@ onAuthStateChanged(auth , async(user)=>{
 
     if(user){
         currentUser = user;
+        taskRef = collection(db, "users-tasks",currentUser.uid,"tasks");
         document.getElementById('user-email').innerText = user.email;
         loadTasks(user);
     }else{
@@ -38,20 +37,16 @@ onAuthStateChanged(auth , async(user)=>{
 // loading tasks
 async function loadTasks(user){
     container.innerHTML='';
-    const taskRef = doc(db,'users-tasks',user.uid);
-    let userTasks = [];
     try {
-        const docSnap = await getDoc(taskRef);
-        if(docSnap.exists()){
-            const data = docSnap.data();
-            userTasks = data.tasks || [];
-            displayTasks(userTasks,user);
-        }
+        const querySnap = await getDocs(taskRef);
+        querySnap.forEach((doc)=>{
+                let task = doc.data();
+                let taskId = doc.id;
+                displayTasks(user,task,taskId);
+            })
     } catch (error) {
         alert(error);
     }
-
-
 }
 
 // adding tasks
@@ -61,55 +56,69 @@ addBtn.addEventListener('click', async()=>{
     if(task==''){
         return;
     }
-    
-    const taskRef = doc(db, "users-tasks",currentUser.uid);
-
     try {
-        const docSnap = await getDoc(taskRef);
-        if(!docSnap.exists()){
-            await setDoc(taskRef , { 
-                email : currentUser.email,
-                tasks : [task]
-            })
-        }else {
-            await updateDoc(taskRef , {
-                tasks : arrayUnion(task)
-            })
-        }
-        document.getElementById('taskTitle').value = "";
+        await addDoc(taskRef,{                     //  format of storing the task in the database....
+            title: task,
+            isCompleted : false,
+            createdAt : Date.now()
+        });
         loadTasks(currentUser);
+
     } catch (error) {
         alert(error);
     }
-    
-
+    document.getElementById('taskTitle').value = "";
 })
 
 
 // displaying tasks 
 
-    async function displayTasks(tasks,user){
-        tasks.forEach((task)=>{
+    async function displayTasks(user,task,taskId){
+
             const div = document.createElement('div');
-            const checkTask = document.createElement('checkbox');
+            const checkTask = document.createElement('input');
+            checkTask.type = "checkbox";
             const p = document.createElement('p');
             const editBtn = document.createElement('button');
             const deleteBtn = document.createElement('button');
-           
-            p.innerText = task;
+            checkTask.checked = task.isCompleted;
+            p.innerText = task.title;
+            p.classList.add('flex-grow');
             editBtn.innerText = "Edit";
             deleteBtn.innerText = "Delete";
+            if(checkTask.checked){
+                    p.style.textDecoration = "line-through";
+                    p.style.color = "grey";
+                }else{
+                     p.style.textDecoration = "none";
+                     p.style.color = "black";
+                }
             
+            // checkbox
+            
+            checkTask.addEventListener('click', async()=>{
+                
+                if(checkTask.checked){
+                    p.style.textDecoration = "line-through";
+                    p.style.color = "grey";
+                }else{
+                     p.style.textDecoration = "none";
+                     p.style.color = "black";
+                }
+                const taskDocRef = doc(db,"users-tasks",user.uid,"tasks",taskId);
+                await updateDoc(taskDocRef,{
+                    isCompleted : checkTask.checked
+                })
+
+            })
+
             div.append(checkTask,p,editBtn,deleteBtn);
             container.append(div);
             //  deleating a task
             deleteBtn.addEventListener('click', async()=>{
                 try {
-                    const taskRef = doc(db,"users-tasks",user.uid);
-                    await updateDoc(taskRef , {
-                        tasks : arrayRemove(task)
-                    })
-                    loadTasks(user);
+                    const taskDocRef = doc(db,"users-tasks",user.uid,"tasks",taskId);
+                    await deleteDoc(taskDocRef); 
                 } catch (error) {
                     alert(error);
                 }
@@ -118,32 +127,32 @@ addBtn.addEventListener('click', async()=>{
 
             //  edit a task 
             editBtn.addEventListener('click', ()=>{
-                const editBox = document.createElement('textarea');
+                const editBox = document.createElement('input');
                 const saveBtn = document.createElement('button');
-                editBox.value = task;
+                editBox.value = task.title;
+                editBox.classList.add('flex-grow')
                 saveBtn.innerText = "Save";
                 div.replaceChild(editBox,p);
                 div.replaceChild(saveBtn,editBtn);
                 saveBtn.addEventListener('click', async()=>{
 
                     const newtask = editBox.value;
+            
                     try {
-                        const taskRef = doc(db, "users-tasks", user.uid);
-                        await updateDoc(taskRef, {
-                            tasks: arrayRemove(task)
+                        const taskDocRef = doc(db, "users-tasks", user.uid,"tasks",taskId);
+                        await updateDoc(taskDocRef, {
+                            title: newtask
                         })
-                        await updateDoc(taskRef,{
-                            tasks: arrayUnion(newtask)
-                        })
-                        loadTasks(user);
+                        
+                        
                     } catch (error) {
                         alert(error);
                     }
-                })
-            })
 
-            
-        })
-    }
+                    loadTasks(currentUser);
+                })
+            })    //  edit tast function ends here
+
+    }   //   display function ends here
 
 })
